@@ -1,0 +1,7 @@
+﻿services:
+  relayserver:
+    image: relayserver
+    build:
+      context: .
+      dockerfile: RelayServer/Dockerfile
+
