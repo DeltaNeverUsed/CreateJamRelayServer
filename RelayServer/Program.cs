@@ -7,8 +7,16 @@ class Program {
     private static HttpListener _listener = new HttpListener();
     
     private static async Task Main(string[] args) {
-        _listener.Prefixes.Add("http://*:8080/");
-        _listener.Start();
+        try {
+            _listener.Prefixes.Add("http://*:8080/");
+            _listener.Start();
+        }
+        catch (Exception e) {
+            _listener = new HttpListener();
+            _listener.Prefixes.Add("http://localhost:8080/");
+            _listener.Start();
+        }
+        
 
         while (_listener.IsListening) {
             HttpListenerContext context = await _listener.GetContextAsync();
@@ -16,7 +24,7 @@ class Program {
                 continue;
             
             HttpListenerWebSocketContext webSocketContext = await context.AcceptWebSocketAsync(null);
-            var connection = new Connection(webSocketContext.WebSocket);
+            _ = new Connection(webSocketContext.WebSocket);
         }
     }
 }

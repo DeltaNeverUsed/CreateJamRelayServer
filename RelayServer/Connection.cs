@@ -25,6 +25,10 @@ public class Connection {
         _ = Receive();
     }
 
+    public async Task CloseConnection() {
+        await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+    }
+
     public async Task Send<T>(T jsonObject) {
         string serialized = JsonSerializer.Serialize(jsonObject, JsonSerializerOptions.Default);
         await Send(Encoding.UTF8.GetBytes(serialized), WebSocketMessageType.Text);

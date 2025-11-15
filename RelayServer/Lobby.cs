@@ -7,6 +7,11 @@ namespace RelayServer;
 
 public class Lobby : IDisposable {
     public void Dispose() {
+        foreach (Connection client in _clients) {
+            client.CloseConnection();
+        }
+        _clients.Clear();
+        _host = null;
         Lobbies.Remove(LobbyCode);
     }
 
