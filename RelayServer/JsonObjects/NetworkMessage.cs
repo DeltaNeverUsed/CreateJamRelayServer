@@ -2,8 +2,8 @@
 {
     public class NetworkMessage
     {
-        public MessageType MessageId;
-        public string Json;
+        public MessageType MessageId { get; set; }
+        public string Json { get; set; }
     }
 	
     public enum MessageType
