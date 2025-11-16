@@ -7,7 +7,7 @@ namespace RelayServer;
 
 public class Connection {
     private WebSocket _socket;
-    private CancellationToken _cancellationToken;
+    private readonly CancellationTokenSource _cts = new();
 
     private bool _ready = false;
     private Lobby? _lobby;
@@ -20,15 +20,16 @@ public class Connection {
 
     public Connection(WebSocket socket) {
         _socket = socket;
-        _cancellationToken = new CancellationTokenSource().Token;
-
         _ = Receive();
     }
 
     public async Task CloseConnection() {
         await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+        _cts.Cancel();
+        _socket.Abort();
+        _socket.Dispose();
     }
-    
+
     public async Task Send<T>(MessageType type, T jsonObject) {
         var msg = new NetworkMessage() {
             MessageId = type,
@@ -43,7 +44,7 @@ public class Connection {
     }
 
     public async Task Send(ArraySegment<byte> buff, WebSocketMessageType type) {
-        await _socket.SendAsync(buff, type, true, _cancellationToken);
+        await _socket.SendAsync(buff, type, true, _cts.Token);
     }
 
     public void ParseControlMessage(MemoryStream ms) {
@@ -64,7 +65,7 @@ public class Connection {
                         Console.WriteLine("Got client connect request, but lobby code was empty");
                         return;
                     }
-                    
+
                     if (controlMessage.PlayerName == null || string.IsNullOrWhiteSpace(controlMessage.PlayerName)) {
                         Console.WriteLine("Got client connect request, but PlayerName was empty");
                         return;
@@ -104,7 +105,9 @@ public class Connection {
                 using var ms = new MemoryStream();
                 WebSocketReceiveResult result;
                 do {
-                    result = await _socket.ReceiveAsync(buffer, _cancellationToken);
+                    result = await _socket.ReceiveAsync(buffer, _cts.Token);
+                    if (result.MessageType == WebSocketMessageType.Close)
+                        break;
                     ms.Write(buffer.Array, buffer.Offset, result.Count);
                 } while (!result.EndOfMessage);
 
