@@ -28,6 +28,14 @@ public class Connection {
     public async Task CloseConnection() {
         await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
     }
+    
+    public async Task Send<T>(MessageType type, T jsonObject) {
+        var msg = new NetworkMessage() {
+            MessageId = type,
+            Json = JsonSerializer.Serialize(jsonObject, JsonSerializerOptions.Default)
+        };
+        await Send(msg);
+    }
 
     public async Task Send<T>(T jsonObject) {
         string serialized = JsonSerializer.Serialize(jsonObject, JsonSerializerOptions.Default);

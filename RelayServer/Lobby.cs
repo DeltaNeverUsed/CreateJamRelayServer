@@ -27,8 +27,8 @@ public class Lobby : IDisposable {
         _clients.Add(client);
         client.OnMessage += ms => { _host.Send(ms.ToArray(), WebSocketMessageType.Text); };
         var clientConnection = new ClientConnectionResponse(playerName);
-        _host.Send(clientConnection);
-        client.Send(clientConnection);
+        _ = _host.Send(MessageType.ClientConnectionResponse, clientConnection);
+        _ = client.Send(MessageType.ClientConnectionResponse, clientConnection);
     }
 
     public void RemoveClient(Connection client) {
@@ -60,6 +60,6 @@ public class Lobby : IDisposable {
         Lobbies.Add(LobbyCode, this);
         _host.OnMessage += ms => { Broadcast(ms.ToArray()); };
         
-        _host.Send(new LobbyCreated(LobbyCode));
+        _ = _host.Send(MessageType.LobbyCreated, new LobbyCreated(LobbyCode));
     }
 }
